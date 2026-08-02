@@ -232,6 +232,49 @@ window.closeAllCityPanels = function() {
     window.currentOpenCityIndex = null;
 };
 
+// Delete a city from its edit panel
+window.deleteCityFromPanel = function(cityIndex) {
+    const city = cities[cityIndex];
+    if (confirm(`Supprimer ${city.name} de l'itinéraire?`)) {
+        // Find the position of this city in routeOrder
+        const position = routeOrder.indexOf(cityIndex);
+        if (position !== -1) {
+            // Remove from routeOrder
+            routeOrder.splice(position, 1);
+            // Remove corresponding price (if this is not the last city)
+            if (position < routePrices.length) {
+                routePrices.splice(position, 1);
+            }
+            // Close all panels
+            closeAllPanels();
+            // Update everything
+            drawMap();
+        }
+    }
+};
+
+// Add a new city from the timeline
+window.addCityFromTimeline = function() {
+    const newCity = {
+        name: 'Nouvelle Ville',
+        coords: [0, 0],
+        description: '',
+        days: 1
+    };
+    cities.push(newCity);
+    routeOrder.push(cities.length - 1);
+    routePrices.push(0);
+    drawMap();
+    
+    // Scroll to the bottom to show the new city
+    setTimeout(() => {
+        const timeline = document.getElementById('itineraryTimeline');
+        if (timeline) {
+            timeline.scrollTop = timeline.scrollHeight;
+        }
+    }, 100);
+};
+
 // Update the days for a city and refresh the display
 window.updateCityDaysFromPanel = function(cityIndex, days) {
     const city = cities[cityIndex];
@@ -267,8 +310,15 @@ window.toggleTripEdit = function(tripIndex) {
 
 // Update the price for a trip and refresh the display
 window.updateTripPriceFromPanel = function(tripIndex, price) {
-    const numericPrice = parseFloat(price) || 0;
-    routePrices[tripIndex] = numericPrice;
+    // Handle empty input
+    if (!price || price.trim() === '') {
+        routePrices[tripIndex] = 0;
+    } else {
+        // Remove € symbol and any non-numeric characters
+        const cleanedPrice = price.replace(/[^0-9.]/g, '');
+        const numericPrice = parseFloat(cleanedPrice) || 0;
+        routePrices[tripIndex] = numericPrice;
+    }
     
     // Update the timeline display
     renderTimeline();
@@ -289,6 +339,12 @@ function renderTimeline() {
     if (!timeline) return;
     
     timeline.innerHTML = '';
+    
+    // Add Add City button at the top of the timeline
+    const addCityBtn = document.createElement('div');
+    addCityBtn.className = 'add-city-timeline-btn';
+    addCityBtn.innerHTML = '<button class="btn btn-primary" onclick="window.addCityFromTimeline()">+ Ajouter une ville</button>';
+    timeline.appendChild(addCityBtn);
     
     // Calculate cumulative days for date calculation
     let cumulativeDays = 0;
@@ -324,6 +380,7 @@ function renderTimeline() {
             <div class="city-edit-panel" id="cityEditPanel-${cityIndex}" style="display: none;">
                 <div class="edit-panel-header">
                     <span class="edit-panel-title">Modifier: ${city.name}</span>
+                    <button class="delete-btn" onclick="window.deleteCityFromPanel(${cityIndex})" title="Supprimer">×</button>
                 </div>
                 <div class="edit-panel-content">
                     <div class="form-group">
@@ -388,13 +445,20 @@ function renderTimeline() {
             tripConnector.innerHTML = `
                 <a href="${omioUrl}" target="_blank" class="trip-info" title="Voir les billets de train sur Omio pour le ${formattedDate}">${tripInfo}</a>
                 <button class="edit-trip-btn" onclick="toggleTripEdit(${position})" title="Modifier le prix">✏️</button>
-                <div class="trip-edit-panel" id="tripEditPanel-${position}" style="display: none;">
-                    <span class="euro-symbol">€</span>
-                    <input type="number" id="priceInput-${position}" value="${price}" min="0" step="0.01" placeholder="0">
-                    <button class="update-days-btn" onclick="window.updateTripPriceFromPanel(${position}, document.getElementById('priceInput-${position}').value)">OK</button>
-                </div>
             `;
             timeline.appendChild(tripConnector);
+            
+            // Create the edit panel separately and insert it after the connector
+            const tripPanel = document.createElement('div');
+            tripPanel.className = 'trip-edit-panel';
+            tripPanel.id = `tripEditPanel-${position}`;
+            tripPanel.style.display = 'none';
+            tripPanel.innerHTML = `
+                <span class="euro-symbol">€</span>
+                <input type="text" id="priceInput-${position}" placeholder="0">
+                <button class="update-days-btn" onclick="window.updateTripPriceFromPanel(${position}, document.getElementById('priceInput-${position}').value)">OK</button>
+            `;
+            timeline.appendChild(tripPanel);
         }
     });
     
@@ -962,8 +1026,10 @@ window.addEventListener('click', (e) => {
     const isClickInsidePanel = allPanels.some(panel => panel.contains(e.target));
     const isClickOnCityCard = Array.from(document.querySelectorAll('.city-card')).some(card => card.contains(e.target));
     const isClickOnEditBtn = Array.from(document.querySelectorAll('.edit-trip-btn')).some(btn => btn.contains(e.target));
+    const isClickOnInput = e.target.tagName === 'INPUT';
+    const isClickOnButton = e.target.tagName === 'BUTTON';
     
-    if (!isClickInsidePanel && !isClickOnCityCard && !isClickOnEditBtn) {
+    if (!isClickInsidePanel && !isClickOnCityCard && !isClickOnEditBtn && !isClickOnInput && !isClickOnButton) {
         window.closeAllPanels();
     }
 });
