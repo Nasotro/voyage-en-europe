@@ -203,8 +203,25 @@ function getCountryDisplay(countryName) {
     return { flag, country: countryName };
 }
 
-// Global variable to track which city edit panel is currently open
+// Global variables to track open panels
 window.currentOpenCityIndex = null;
+window.currentOpenTripIndex = null;
+
+// Close all edit panels (city and trip)
+window.closeAllPanels = function() {
+    const cityPanels = document.querySelectorAll('.city-edit-panel');
+    cityPanels.forEach(panel => {
+        panel.style.display = 'none';
+    });
+    
+    const tripPanels = document.querySelectorAll('.trip-edit-panel');
+    tripPanels.forEach(panel => {
+        panel.style.display = 'none';
+    });
+    
+    window.currentOpenCityIndex = null;
+    window.currentOpenTripIndex = null;
+};
 
 // Close all city edit panels
 window.closeAllCityPanels = function() {
@@ -230,7 +247,40 @@ window.updateCityDaysFromPanel = function(cityIndex, days) {
     renderCitiesTable();
     
     // Close the panel after update
-    closeAllCityPanels();
+    closeAllPanels();
+};
+
+// Toggle trip edit panel
+window.toggleTripEdit = function(tripIndex) {
+    const panel = document.getElementById(`tripEditPanel-${tripIndex}`);
+    if (panel) {
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+            window.currentOpenTripIndex = null;
+        } else {
+            window.closeAllPanels();
+            panel.style.display = 'block';
+            window.currentOpenTripIndex = tripIndex;
+        }
+    }
+};
+
+// Update the price for a trip and refresh the display
+window.updateTripPriceFromPanel = function(tripIndex, price) {
+    const numericPrice = parseFloat(price) || 0;
+    routePrices[tripIndex] = numericPrice;
+    
+    // Update the timeline display
+    renderTimeline();
+    
+    // Update the recap panel
+    updateRecapPanel();
+    
+    // Update the cities table in the edit panel
+    renderCitiesTable();
+    
+    // Close the panel after update
+    closeAllPanels();
 };
 
 // Render the beautiful journey timeline
@@ -274,7 +324,6 @@ function renderTimeline() {
             <div class="city-edit-panel" id="cityEditPanel-${cityIndex}" style="display: none;">
                 <div class="edit-panel-header">
                     <span class="edit-panel-title">Modifier: ${city.name}</span>
-                    <button class="close-panel-btn" onclick="closeAllCityPanels()">×</button>
                 </div>
                 <div class="edit-panel-content">
                     <div class="form-group">
@@ -285,7 +334,7 @@ function renderTimeline() {
                         <label>Dates:</label>
                         <span class="edit-panel-dates">${arrivalShort} - ${departureShort}</span>
                     </div>
-                    <button class="update-days-btn" onclick="updateCityDaysFromPanel(${cityIndex}, document.getElementById('daysInput-${cityIndex}').value)">
+                    <button class="update-days-btn" onclick="window.updateCityDaysFromPanel(${cityIndex}, document.getElementById('daysInput-${cityIndex}').value)">
                         Mettre à jour
                     </button>
                 </div>
@@ -293,20 +342,26 @@ function renderTimeline() {
         `;
         timeline.appendChild(cityNode);
         
-        // Add click handler to the city card
+        // Add click handler to the city card - toggle panel
         const cityCard = cityNode.querySelector('.city-card');
         cityCard.addEventListener('click', (e) => {
             // Don't trigger if clicking on a child element that might have its own handler
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
             
-            // Close any open panels
-            closeAllCityPanels();
-            
-            // Open this city's edit panel
             const panel = document.getElementById(`cityEditPanel-${cityIndex}`);
             if (panel) {
-                panel.style.display = 'block';
-                currentOpenCityIndex = cityIndex;
+                // Check if this panel is currently open
+                if (panel.style.display === 'block') {
+                    // Close this panel
+                    panel.style.display = 'none';
+                    window.currentOpenCityIndex = null;
+                } else {
+                    // Close all panels first
+                    window.closeAllCityPanels();
+                    // Open this panel
+                    panel.style.display = 'block';
+                    window.currentOpenCityIndex = cityIndex;
+                }
             }
         });
         
@@ -329,7 +384,15 @@ function renderTimeline() {
             
             const tripConnector = document.createElement('div');
             tripConnector.className = 'trip-connector';
-            tripConnector.innerHTML = `<a href="${omioUrl}" target="_blank" class="trip-info" title="Voir les billets de train sur Omio pour le ${formattedDate}">${tripInfo}</a>`;
+            tripConnector.dataset.tripIndex = position;
+            tripConnector.innerHTML = `
+                <a href="${omioUrl}" target="_blank" class="trip-info" title="Voir les billets de train sur Omio pour le ${formattedDate}">${tripInfo}</a>
+                <button class="edit-trip-btn" onclick="toggleTripEdit(${position})" title="Modifier le prix">✏️</button>
+                <div class="trip-edit-panel" id="tripEditPanel-${position}" style="display: none;">
+                    <input type="number" id="priceInput-${position}" value="${price}" min="0" step="0.01" placeholder="Prix (€)">
+                    <button class="update-days-btn" onclick="window.updateTripPriceFromPanel(${position}, document.getElementById('priceInput-${position}').value)">OK</button>
+                </div>
+            `;
             timeline.appendChild(tripConnector);
         }
     });
@@ -832,6 +895,20 @@ function initSortable() {
         }
     });
 }
+
+// Close edit panels when clicking outside
+window.addEventListener('click', (e) => {
+    const cityPanels = document.querySelectorAll('.city-edit-panel');
+    const tripPanels = document.querySelectorAll('.trip-edit-panel');
+    const allPanels = [...cityPanels, ...tripPanels];
+    const isClickInsidePanel = allPanels.some(panel => panel.contains(e.target));
+    const isClickOnCityCard = Array.from(document.querySelectorAll('.city-card')).some(card => card.contains(e.target));
+    const isClickOnEditBtn = Array.from(document.querySelectorAll('.edit-trip-btn')).some(btn => btn.contains(e.target));
+    
+    if (!isClickInsidePanel && !isClickOnCityCard && !isClickOnEditBtn) {
+        window.closeAllPanels();
+    }
+});
 
 // Initialize when DOM is loaded
 window.addEventListener('DOMContentLoaded', () => {
