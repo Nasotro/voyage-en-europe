@@ -313,7 +313,6 @@ function renderTimeline() {
         cityNode.dataset.cityIndex = cityIndex;
         cityNode.innerHTML = `
             <div class="city-dot"></div>
-            <div class="city-drag-handle">≡</div>
             <div class="city-card" data-city-index="${cityIndex}">
                 <div class="city-name">${city.name}</div>
                 <div class="city-info">
@@ -914,8 +913,11 @@ function initTimelineSortable() {
     window.timelineSortable = new Sortable(timeline, {
         animation: 150,
         ghostClass: 'sortable-ghost',
-        handle: '.city-drag-handle', // Only drag using the handle
-        filter: '.trip-connector, .city-card, .city-edit-panel', // Don't allow dragging these
+        filter: '.trip-connector, .city-edit-panel', // Don't allow dragging these
+        onStart: function(evt) {
+            // Close any open panels when starting to drag
+            window.closeAllPanels();
+        },
         onEnd: function(evt) {
             // Build a map of existing prices by city pair
             const priceMap = {};
