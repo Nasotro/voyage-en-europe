@@ -390,7 +390,8 @@ function renderTimeline() {
                 <a href="${omioUrl}" target="_blank" class="trip-info" title="Voir les billets de train sur Omio pour le ${formattedDate}">${tripInfo}</a>
                 <button class="edit-trip-btn" onclick="toggleTripEdit(${position})" title="Modifier le prix">✏️</button>
                 <div class="trip-edit-panel" id="tripEditPanel-${position}" style="display: none;">
-                    <input type="number" id="priceInput-${position}" value="${price}" min="0" step="0.01" placeholder="Prix (€)">
+                    <span class="euro-symbol">€</span>
+                    <input type="number" id="priceInput-${position}" value="${price}" min="0" step="0.01" placeholder="0">
                     <button class="update-days-btn" onclick="window.updateTripPriceFromPanel(${position}, document.getElementById('priceInput-${position}').value)">OK</button>
                 </div>
             `;
