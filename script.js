@@ -266,11 +266,34 @@ window.addCityFromTimeline = function() {
     routePrices.push(0);
     drawMap();
     
-    // Scroll to the bottom to show the new city
+    // After the map is drawn, open the edit panel for the new city
     setTimeout(() => {
+        const newCityIndex = cities.length - 1;
+        const panel = document.getElementById(`cityEditPanel-${newCityIndex}`);
+        if (panel) {
+            // Close all other panels first
+            window.closeAllCityPanels();
+            // Open the new city's panel
+            panel.style.display = 'block';
+            window.currentOpenCityIndex = newCityIndex;
+            
+            // Focus on the name input
+            const nameInput = document.getElementById(`nameInput-${newCityIndex}`);
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.select(); // Select all text so user can start typing immediately
+            }
+        }
+        
+        // Scroll to the new city
         const timeline = document.getElementById('itineraryTimeline');
         if (timeline) {
-            timeline.scrollTop = timeline.scrollHeight;
+            const newCityNode = timeline.querySelector(`[data-city-index="${newCityIndex}"]`);
+            if (newCityNode) {
+                newCityNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                timeline.scrollTop = timeline.scrollHeight;
+            }
         }
     }, 100);
 };
@@ -278,6 +301,25 @@ window.addCityFromTimeline = function() {
 // Update the days for a city and refresh the display
 window.updateCityDaysFromPanel = function(cityIndex, days) {
     const city = cities[cityIndex];
+    city.days = parseInt(days) || 1;
+    
+    // Update the timeline display
+    renderTimeline();
+    
+    // Update the recap panel
+    updateRecapPanel();
+    
+    // Update the cities table in the edit panel
+    renderCitiesTable();
+    
+    // Close the panel after update
+    closeAllPanels();
+};
+
+// Update city name and days from timeline panel
+window.updateCityFromPanel = function(cityIndex, name, days) {
+    const city = cities[cityIndex];
+    city.name = name || city.name;
     city.days = parseInt(days) || 1;
     
     // Update the timeline display
@@ -379,10 +421,14 @@ function renderTimeline() {
             </div>
             <div class="city-edit-panel" id="cityEditPanel-${cityIndex}" style="display: none;">
                 <div class="edit-panel-header">
-                    <span class="edit-panel-title">Modifier: ${city.name}</span>
+                    <span class="edit-panel-title">Modifier: <span id="cityNameDisplay-${cityIndex}">${city.name}</span></span>
                     <button class="delete-btn" onclick="window.deleteCityFromPanel(${cityIndex})" title="Supprimer">×</button>
                 </div>
                 <div class="edit-panel-content">
+                    <div class="form-group">
+                        <label for="nameInput-${cityIndex}">Nom de la ville:</label>
+                        <input type="text" id="nameInput-${cityIndex}" value="${city.name}" placeholder="Nom de la ville">
+                    </div>
                     <div class="form-group">
                         <label for="daysInput-${cityIndex}">Nombre de jours:</label>
                         <input type="number" id="daysInput-${cityIndex}" value="${city.days}" min="0">
@@ -391,7 +437,7 @@ function renderTimeline() {
                         <label>Dates:</label>
                         <span class="edit-panel-dates">${arrivalShort} - ${departureShort}</span>
                     </div>
-                    <button class="update-days-btn" onclick="window.updateCityDaysFromPanel(${cityIndex}, document.getElementById('daysInput-${cityIndex}').value)">
+                    <button class="update-days-btn" onclick="window.updateCityFromPanel(${cityIndex}, document.getElementById('nameInput-${cityIndex}').value, document.getElementById('daysInput-${cityIndex}').value)">
                         Mettre à jour
                     </button>
                 </div>
