@@ -309,10 +309,11 @@ function renderTimeline() {
         const country = getCountry(city);
         const countryDisplay = getCountryDisplay(country);
         const cityNode = document.createElement('div');
-        cityNode.className = 'city-node';
+        cityNode.className = 'city-node draggable-city';
         cityNode.dataset.cityIndex = cityIndex;
         cityNode.innerHTML = `
             <div class="city-dot"></div>
+            <div class="city-drag-handle">≡</div>
             <div class="city-card" data-city-index="${cityIndex}">
                 <div class="city-name">${city.name}</div>
                 <div class="city-info">
@@ -396,6 +397,9 @@ function renderTimeline() {
             timeline.appendChild(tripConnector);
         }
     });
+    
+    // Initialize drag and drop for timeline
+    initTimelineSortable();
 }
 
 // Colors for route segments
@@ -853,7 +857,7 @@ function renderCitiesTable() {
     renderTimeline();
 }
 
-// Initialize SortableJS for drag-and-drop reordering
+// Initialize SortableJS for drag-and-drop reordering in edit panel
 function initSortable() {
     const tbody = document.getElementById('citiesList');
     
@@ -891,6 +895,57 @@ function initSortable() {
             }
             routePrices = newPrices;
             
+            drawMap();
+        }
+    });
+}
+
+// Initialize SortableJS for drag-and-drop reordering in timeline
+function initTimelineSortable() {
+    const timeline = document.getElementById('itineraryTimeline');
+    if (!timeline) return;
+    
+    // Destroy existing Sortable if it exists
+    if (window.timelineSortable) {
+        window.timelineSortable.destroy();
+    }
+    
+    window.timelineSortable = new Sortable(timeline, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        handle: '.city-drag-handle', // Only drag using the handle
+        filter: '.trip-connector, .city-card, .city-edit-panel', // Don't allow dragging these
+        onEnd: function(evt) {
+            // Build a map of existing prices by city pair
+            const priceMap = {};
+            for (let i = 0; i < routeOrder.length - 1; i++) {
+                const from = routeOrder[i];
+                const to = routeOrder[i + 1];
+                priceMap[`${from}-${to}`] = routePrices[i];
+            }
+            
+            // Rebuild routeOrder from DOM - only city nodes, not connectors
+            const cityNodes = timeline.querySelectorAll('.city-node');
+            const newRouteOrder = [];
+            cityNodes.forEach(node => {
+                newRouteOrder.push(parseInt(node.dataset.cityIndex));
+            });
+            routeOrder = newRouteOrder;
+            
+            // Rebuild routePrices, preserving prices where city pairs match
+            const newPrices = [];
+            for (let i = 0; i < routeOrder.length - 1; i++) {
+                const from = routeOrder[i];
+                const to = routeOrder[i + 1];
+                // Try both directions (A-B and B-A)
+                newPrices.push(priceMap[`${from}-${to}`] || priceMap[`${to}-${from}`] || 0);
+            }
+            routePrices = newPrices;
+            
+            // Redraw the timeline and update everything
+            renderTimeline();
+            renderCitiesTable();
+            updateRecapPanel();
             drawMap();
         }
     });

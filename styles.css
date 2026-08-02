@@ -381,6 +381,7 @@ h1 {
     max-width: 600px;
     margin: 0 auto;
     padding-left: 25px;
+    min-height: 100px;
 }
 
 /* Vertical connecting line on the left */
@@ -696,6 +697,70 @@ h1 {
 
 .trip-connector:hover::before {
     background: #4a90e2;
+}
+
+/* Drag and Drop Styles for Timeline */
+.draggable-city {
+    cursor: move;
+}
+
+.city-drag-handle {
+    position: absolute;
+    left: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background: #4a90e2;
+    border-radius: 3px;
+    cursor: move;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.city-drag-handle:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
+}
+
+.city-node:hover .city-drag-handle {
+    opacity: 1;
+}
+
+/* SortableJS Ghost Class */
+.sortable-ghost {
+    opacity: 0.7;
+    background: #e8f4fc;
+    border-radius: 8px;
+    border: 2px dashed #4a90e2;
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+}
+
+/* Style for when dragging */
+.city-node.sortable-chosen {
+    opacity: 0.8;
+    background: #e8f4fc;
+    border-radius: 8px;
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+}
+
+/* Ensure trip connectors don't interfere with drag */
+.trip-connector {
+    cursor: default;
+}
+
+/* Make sure city nodes are properly spaced for drag and drop */
+.city-node {
+    margin-bottom: 15px;
 }
 
 /* Animations */
