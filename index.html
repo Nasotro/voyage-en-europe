@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Voyage Interrail - Carte Interactive</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>🚆 Mon Voyage Interrail en Europe - Itinéraire Classique</h1>
+        
+        <!-- Edit Panel -->
+        <div class="edit-panel">
+            <h2>⚙️ Modifier l'Itinéraire</h2>
+            <div class="panel-controls">
+                <button id="addCityBtn" class="btn">+ Ajouter une ville</button>
+                <button id="saveBtn" class="btn btn-primary">💾 Sauvegarder</button>
+                <button id="exportBtn" class="btn btn-success">📥 Exporter JSON</button>
+                <button id="importBtn" class="btn btn-import">📤 Importer JSON</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;">
+            </div>
+            <div class="cities-table-container">
+                <table id="citiesTable">
+                    <thead>
+                        <tr>
+                            <th>Ordre</th>
+                            <th>Ville</th>
+                            <th>Jours</th>
+                            <th>Prix (€)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="citiesList">
+                        <!-- Cities will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Recap Panel -->
+        <div class="recap-panel">
+            <h2>📊 Récapitulatif du Voyage</h2>
+            <div class="recap-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDays">0</div>
+                    <div class="stat-label">Jours Totaux</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCities">0</div>
+                    <div class="stat-label">Villes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTrips">0</div>
+                    <div class="stat-label">Trajet</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgDays">0</div>
+                    <div class="stat-label">Jours/Ville (moy.)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgPrice">0</div>
+                    <div class="stat-label">Prix/Trajet (moy.)</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+        <div class="addresses">
+            <h2>📍 Adresses et Points d'Intérêt</h2>
+            <div class="city-section">
+                <h3>Paris, France</h3>
+                <ul>
+                    <li><strong>Gare principale :</strong> Gare du Nord (Rue de Dunkerque, 75010 Paris)</li>
+                    <li><strong>À voir :</strong> Tour Eiffel, Musée du Louvre, Cathédrale Notre-Dame, Montmartre, Champs-Élysées</li>
+                </ul>
+            </div>
+            <div class="city-section">
+                <h3>Vienne, Autriche</h3>
+                <ul>
+                    <li><strong>Gare principale :</strong> Wien Hauptbahnhof (Hauptbahnhofstraße 1-3, 1100 Wien)</li>
+                    <li><strong>À voir :</strong> Palais de Schönbrunn, Opéra de Vienne, Café Central</li>
+                </ul>
+            </div>
+            <div class="city-section">
+                <h3>Prague, République Tchèque</h3>
+                <ul>
+                    <li><strong>Gare principale :</strong> Praha hlavní nádraží (Wilsonova 8, 110 00 Praha)</li>
+                    <li><strong>À voir :</strong> Pont Charles, Château de Prague, Horloge Astronomique</li>
+                </ul>
+            </div>
+            <div class="city-section">
+                <h3>Budapest, Hongrie</h3>
+                <ul>
+                    <li><strong>Gare principale :</strong> Keleti pályaudvar (Baross tér 7-8, 1087 Budapest)</li>
+                    <li><strong>À voir :</strong> Parlement de Budapest, Bains Széchenyi, Bastion des Pêcheurs</li>
+                </ul>
+            </div>
+            <div class="city-section">
+                <h3>Bratislava, Slovaquie</h3>
+                <ul>
+                    <li><strong>Gare principale :</strong> Bratislava hl.st. (Námestie 1. mája 1, 811 06 Bratislava)</li>
+                    <li><strong>À voir :</strong> Château de Bratislava, Vieille Ville, Danube</li>
+                </ul>
+            </div>
+            <div class="city-section">
+                <h3>Munich, Allemagne</h3>
+                <ul>
+                    <li><strong>Gare principale :</strong> München Hauptbahnhof (Bayerstraße 10, 80335 München)</li>
+                    <li><strong>À voir :</strong> Marienplatz, Englischer Garten, Oktoberfest (si fin septembre)</li>
+                </ul>
+            </div>
+            <div class="city-section">
+                <h3>Salzbourg, Autriche</h3>
+                <ul>
+                    <li><strong>Gare principale :</strong> Salzburg Hauptbahnhof (Südtiroler Platz 1, 5020 Salzburg)</li>
+                    <li><strong>À voir :</strong> Forteresse de Hohensalzburg, Maison de Mozart, Lac Wolfgang</li>
+                </ul>
+            </div>
+            <div class="city-section">
+                <h3>Paris, France</h3>
+                <ul>
+                    <li><strong>Gare principale :</strong> Gare du Nord (Rue de Dunkerque, 75010 Paris)</li>
+                    <li><strong>À voir :</strong> Tour Eiffel, Musée du Louvre, Cathédrale Notre-Dame, Montmartre, Champs-Élysées</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
