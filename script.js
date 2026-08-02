@@ -4,7 +4,7 @@ let cities = [
         name: "Paris",
         coords: [48.8566, 2.3522],
         description: "<b>Paris, France</b><br>Tour Eiffel, Musée du Louvre, Notre-Dame, Montmartre",
-        days: 3
+        days: 0
     },
     {
         name: "Vienne",
@@ -46,7 +46,7 @@ let cities = [
         name: "Paris",
         coords: [48.8566, 2.3522],
         description: "<b>Paris, France</b><br>Tour Eiffel, Musée du Louvre, Notre-Dame, Montmartre",
-        days: 2
+        days: 0
     }
 ];
 
@@ -62,6 +62,9 @@ let routePrices = [50, 14, 19, 15, 30, 9, 60];
 let map;
 let markers = [];
 let polylines = [];
+
+// Store start date for trip calculations
+let startDate = new Date('2026-08-01');
 
 // Helper function to convert city name to URL slug for Omio
 function cityToSlug(cityName) {
@@ -114,61 +117,220 @@ function formatDistance(km) {
     return `${km.toFixed(0)} km`;
 }
 
-// Render the vertical timeline with cities and trips
+// Format date as DD/MM/YYYY for Omio URLs
+function formatDate(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+// Format date as DD mon (e.g., 04 sep)
+function formatShortDate(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+    const month = monthNames[date.getMonth()];
+    return `${day} ${month}`;
+}
+
+// Extract country from city description
+function getCountry(city) {
+    // Description format: <b>City, Country</b><br>...
+    const boldMatch = city.description.match(/<b>([^<]+)<\/b>/);
+    if (boldMatch) {
+        const parts = boldMatch[1].split(',').map(p => p.trim());
+        if (parts.length >= 2) {
+            return parts[1];
+        }
+    }
+    return '';
+}
+
+// Country name to ISO code mapping (supports French names)
+const countryToIso = {
+    'france': 'FR',
+    'autriche': 'AT',
+    'république tchèque': 'CZ',
+    'tchèque': 'CZ',
+    'hongrie': 'HU',
+    'slovaquie': 'SK',
+    'allemagne': 'DE',
+    // Add more countries here as needed
+    'belgique': 'BE',
+    'pays-bas': 'NL',
+    'suisse': 'CH',
+    'italie': 'IT',
+    'espagne': 'ES',
+    'roumanie': 'RO',
+    'pologne': 'PL',
+    'croatie': 'HR',
+    'slovénie': 'SI',
+    'serbie': 'RS',
+    'bosnie': 'BA',
+    'monténégro': 'ME',
+    'luxembourg': 'LU',
+    'danemark': 'DK',
+    'suède': 'SE',
+    'norvège': 'NO',
+    'finlande': 'FI',
+    'royaume-uni': 'GB',
+    'irlande': 'IE',
+    'portugal': 'PT',
+    'grèce': 'GR',
+    'turquie': 'TR',
+    'russie': 'RU',
+    'ukraine': 'UA'
+};
+
+// Convert ISO country code to flag emoji
+function getFlagFromCode(code) {
+    if (!code || code.length !== 2) return '';
+    const codeUpper = code.toUpperCase();
+    // Regional indicator symbols start at U+1F1E6
+    const offset = 0x1F1E6;
+    const firstChar = codeUpper.charCodeAt(0) - 65; // A = 0
+    const secondChar = codeUpper.charCodeAt(1) - 65; // A = 0
+    const firstSymbol = String.fromCodePoint(offset + firstChar);
+    const secondSymbol = String.fromCodePoint(offset + secondChar);
+    return firstSymbol + secondSymbol;
+}
+
+// Get flag emoji and country name for display
+function getCountryDisplay(countryName) {
+    const normalized = countryName.toLowerCase().trim();
+    const iso = countryToIso[normalized] || '';
+    const flag = iso ? getFlagFromCode(iso) : '';
+    return { flag, country: countryName };
+}
+
+// Global variable to track which city edit panel is currently open
+window.currentOpenCityIndex = null;
+
+// Close all city edit panels
+window.closeAllCityPanels = function() {
+    const panels = document.querySelectorAll('.city-edit-panel');
+    panels.forEach(panel => {
+        panel.style.display = 'none';
+    });
+    window.currentOpenCityIndex = null;
+};
+
+// Update the days for a city and refresh the display
+window.updateCityDaysFromPanel = function(cityIndex, days) {
+    const city = cities[cityIndex];
+    city.days = parseInt(days) || 1;
+    
+    // Update the timeline display
+    renderTimeline();
+    
+    // Update the recap panel
+    updateRecapPanel();
+    
+    // Update the cities table in the edit panel
+    renderCitiesTable();
+    
+    // Close the panel after update
+    closeAllCityPanels();
+};
+
+// Render the beautiful journey timeline
 function renderTimeline() {
     const timeline = document.getElementById('itineraryTimeline');
     if (!timeline) return;
     
     timeline.innerHTML = '';
     
+    // Calculate cumulative days for date calculation
+    let cumulativeDays = 0;
+    
     routeOrder.forEach((cityIndex, position) => {
         const city = cities[cityIndex];
         
-        // Add City Stop
-        const cityItem = document.createElement('div');
-        cityItem.className = 'timeline-item city';
-        cityItem.innerHTML = `
-            <div class="timeline-content">
-                <div class="timeline-header">
-                    <span class="timeline-title">${city.name}</span>
+        // Calculate arrival and departure dates
+        const arrivalDate = new Date(startDate);
+        arrivalDate.setDate(arrivalDate.getDate() + cumulativeDays);
+        const departureDate = new Date(arrivalDate);
+        departureDate.setDate(departureDate.getDate() + city.days);
+        
+        const arrivalShort = formatShortDate(arrivalDate);
+        const departureShort = formatShortDate(departureDate);
+        
+        // Add City Node
+        const country = getCountry(city);
+        const countryDisplay = getCountryDisplay(country);
+        const cityNode = document.createElement('div');
+        cityNode.className = 'city-node';
+        cityNode.dataset.cityIndex = cityIndex;
+        cityNode.innerHTML = `
+            <div class="city-dot"></div>
+            <div class="city-card" data-city-index="${cityIndex}">
+                <div class="city-name">${city.name}</div>
+                <div class="city-info">
+                    <span class="city-days"><i>📅</i> ${city.days} jour${city.days > 1 ? 's' : ''}</span>
+                    <span class="city-dates">${arrivalShort} - ${departureShort}</span>
+                    <span class="city-country">${countryDisplay.flag} ${countryDisplay.country}</span>
                 </div>
-                <div class="timeline-details">
-                    <div class="timeline-detail city-days">
-                        <i>📅</i> ${city.days} jour${city.days > 1 ? 's' : ''}
+            </div>
+            <div class="city-edit-panel" id="cityEditPanel-${cityIndex}" style="display: none;">
+                <div class="edit-panel-header">
+                    <span class="edit-panel-title">Modifier: ${city.name}</span>
+                    <button class="close-panel-btn" onclick="closeAllCityPanels()">×</button>
+                </div>
+                <div class="edit-panel-content">
+                    <div class="form-group">
+                        <label for="daysInput-${cityIndex}">Nombre de jours:</label>
+                        <input type="number" id="daysInput-${cityIndex}" value="${city.days}" min="0">
                     </div>
-                    <div class="timeline-detail">
-                        <i>📍</i> ${city.coords[0].toFixed(4)}, ${city.coords[1].toFixed(4)}
+                    <div class="form-group">
+                        <label>Dates:</label>
+                        <span class="edit-panel-dates">${arrivalShort} - ${departureShort}</span>
                     </div>
+                    <button class="update-days-btn" onclick="updateCityDaysFromPanel(${cityIndex}, document.getElementById('daysInput-${cityIndex}').value)">
+                        Mettre à jour
+                    </button>
                 </div>
             </div>
         `;
-        timeline.appendChild(cityItem);
+        timeline.appendChild(cityNode);
         
-        // Add Trip Segment (except after last city)
+        // Add click handler to the city card
+        const cityCard = cityNode.querySelector('.city-card');
+        cityCard.addEventListener('click', (e) => {
+            // Don't trigger if clicking on a child element that might have its own handler
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+            
+            // Close any open panels
+            closeAllCityPanels();
+            
+            // Open this city's edit panel
+            const panel = document.getElementById(`cityEditPanel-${cityIndex}`);
+            if (panel) {
+                panel.style.display = 'block';
+                currentOpenCityIndex = cityIndex;
+            }
+        });
+        
+        // Add Trip Connector (except after last city)
         if (position < routeOrder.length - 1) {
             const nextCityIndex = routeOrder[position + 1];
             const nextCity = cities[nextCityIndex];
             const distance = calculateDistance(city.coords, nextCity.coords);
             const price = routePrices[position] || 0;
+            const tripInfo = `${formatDistance(distance)} • €${price.toFixed(0)}`;
             
-            const tripItem = document.createElement('div');
-            tripItem.className = 'timeline-item trip';
-            tripItem.innerHTML = `
-                <div class="timeline-content">
-                    <div class="timeline-header">
-                        <span class="timeline-title">➡️ ${city.name} → ${nextCity.name}</span>
-                    </div>
-                    <div class="timeline-details">
-                        <div class="timeline-detail trip-distance">
-                            <i>📏</i> ${formatDistance(distance)}
-                        </div>
-                        <div class="timeline-detail trip-price">
-                            <i>💰</i> €${price.toFixed(2)}
-                        </div>
-                    </div>
-                </div>
-            `;
-            timeline.appendChild(tripItem);
+            // Update cumulative days for next city's arrival
+            cumulativeDays += city.days;
+            const formattedDate = formatDate(departureDate);
+            const encodedDate = encodeURIComponent(formattedDate);
+            
+            const fromSlug = cityToSlug(city.name);
+            const toSlug = cityToSlug(nextCity.name);
+            const omioUrl = `https://www.omio.com/trains/${fromSlug}/${toSlug}?departure_date=${encodedDate}`;
+            
+            const tripConnector = document.createElement('div');
+            tripConnector.className = 'trip-connector';
+            tripConnector.innerHTML = `<a href="${omioUrl}" target="_blank" class="trip-info" title="Voir les billets de train sur Omio pour le ${formattedDate}">${tripInfo}</a>`;
+            timeline.appendChild(tripConnector);
         }
     });
 }
@@ -260,12 +422,27 @@ function updateRecapPanel() {
     const validPrices = routePrices.filter(price => price > 0);
     const avgPrice = validPrices.length > 0 ? (validPrices.reduce((sum, price) => sum + price, 0) / validPrices.length).toFixed(1) : 0;
     
+    // Calculate total distance
+    let totalDistance = 0;
+    for (let i = 0; i < routeOrder.length - 1; i++) {
+        const start = routeOrder[i];
+        const end = routeOrder[i + 1];
+        totalDistance += calculateDistance(cities[start].coords, cities[end].coords);
+    }
+    totalDistance = Math.round(totalDistance);
+    
     // Update the DOM elements
     document.getElementById('totalDays').textContent = totalDays;
     document.getElementById('totalCities').textContent = totalCities;
     document.getElementById('totalTrips').textContent = totalTrips;
     document.getElementById('avgDays').textContent = avgDays;
     document.getElementById('avgPrice').textContent = avgPrice;
+    
+    // Update total distance if element exists
+    const totalDistanceEl = document.getElementById('totalDistance');
+    if (totalDistanceEl) {
+        totalDistanceEl.textContent = totalDistance;
+    }
 }
 
 // Draw or redraw the map with current cities and route
@@ -487,6 +664,7 @@ function initEditPanel() {
     // Initial render
     renderCitiesTable();
     updateRecapPanel();
+    renderTimeline();
 }
 
 // Render the cities table in the edit panel
@@ -498,7 +676,7 @@ function renderCitiesTable() {
         const city = cities[cityIndex];
         const row = document.createElement('tr');
         row.className = 'city-row';
-        row.dataset.index = position;
+        row.dataset.cityIndex = cityIndex;
 
         // Order cell
         const orderCell = document.createElement('td');
@@ -517,6 +695,11 @@ function renderCitiesTable() {
         });
         nameCell.appendChild(nameInput);
         row.appendChild(nameCell);
+
+        // Coordinates cell
+        const coordsCell = document.createElement('td');
+        coordsCell.textContent = `${city.coords[0].toFixed(4)}, ${city.coords[1].toFixed(4)}`;
+        row.appendChild(coordsCell);
 
         // Days cell
         const daysCell = document.createElement('td');
@@ -576,56 +759,6 @@ function renderCitiesTable() {
 
         // Actions cell
         const actionsCell = document.createElement('td');
-        
-        // Move up button
-        const moveUpBtn = document.createElement('button');
-        moveUpBtn.className = 'move-btn';
-        moveUpBtn.textContent = '↑';
-        moveUpBtn.title = 'Monter';
-        moveUpBtn.disabled = position === 0;
-        moveUpBtn.addEventListener('click', () => {
-            if (position > 0) {
-                // Swap with previous in routeOrder
-                const temp = routeOrder[position];
-                routeOrder[position] = routeOrder[position - 1];
-                routeOrder[position - 1] = temp;
-                
-                // Swap corresponding prices if they exist
-                if (position - 1 < routePrices.length && position < routePrices.length) {
-                    const tempPrice = routePrices[position - 1];
-                    routePrices[position - 1] = routePrices[position];
-                    routePrices[position] = tempPrice;
-                }
-                
-                drawMap();
-            }
-        });
-        actionsCell.appendChild(moveUpBtn);
-
-        // Move down button
-        const moveDownBtn = document.createElement('button');
-        moveDownBtn.className = 'move-btn';
-        moveDownBtn.textContent = '↓';
-        moveDownBtn.title = 'Descendre';
-        moveDownBtn.disabled = position === routeOrder.length - 1;
-        moveDownBtn.addEventListener('click', () => {
-            if (position < routeOrder.length - 1) {
-                // Swap with next in routeOrder
-                const temp = routeOrder[position];
-                routeOrder[position] = routeOrder[position + 1];
-                routeOrder[position + 1] = temp;
-                
-                // Swap corresponding prices if they exist
-                if (position < routePrices.length && position + 1 < routePrices.length) {
-                    const tempPrice = routePrices[position];
-                    routePrices[position] = routePrices[position + 1];
-                    routePrices[position + 1] = tempPrice;
-                }
-                
-                drawMap();
-            }
-        });
-        actionsCell.appendChild(moveDownBtn);
 
         // Delete button
         const deleteBtn = document.createElement('button');
@@ -649,9 +782,70 @@ function renderCitiesTable() {
         tbody.appendChild(row);
     });
     
-    // Update recap after rendering
+    // Initialize drag-and-drop sorting
+    initSortable();
+    
+    // Update recap and timeline after rendering
     updateRecapPanel();
+    renderTimeline();
+}
+
+// Initialize SortableJS for drag-and-drop reordering
+function initSortable() {
+    const tbody = document.getElementById('citiesList');
+    
+    // Destroy existing Sortable if it exists
+    if (window.citySortable) {
+        window.citySortable.destroy();
+    }
+    
+    window.citySortable = new Sortable(tbody, {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: function(evt) {
+            // Build a map of existing prices by city pair
+            const priceMap = {};
+            for (let i = 0; i < routeOrder.length - 1; i++) {
+                const from = routeOrder[i];
+                const to = routeOrder[i + 1];
+                priceMap[`${from}-${to}`] = routePrices[i];
+            }
+            
+            // Rebuild routeOrder from DOM
+            const newRouteOrder = [];
+            tbody.querySelectorAll('.city-row').forEach(row => {
+                newRouteOrder.push(parseInt(row.dataset.cityIndex));
+            });
+            routeOrder = newRouteOrder;
+            
+            // Rebuild routePrices, preserving prices where city pairs match
+            const newPrices = [];
+            for (let i = 0; i < routeOrder.length - 1; i++) {
+                const from = routeOrder[i];
+                const to = routeOrder[i + 1];
+                // Try both directions (A-B and B-A)
+                newPrices.push(priceMap[`${from}-${to}`] || priceMap[`${to}-${from}`] || 0);
+            }
+            routePrices = newPrices;
+            
+            drawMap();
+        }
+    });
 }
 
 // Initialize when DOM is loaded
-window.addEventListener('DOMContentLoaded', initMap);
+window.addEventListener('DOMContentLoaded', () => {
+    // Initialize start date from input
+    const startDateInput = document.getElementById('startDate');
+    if (startDateInput) {
+        startDateInput.addEventListener('change', (e) => {
+            startDate = new Date(e.target.value);
+            renderTimeline();
+        });
+        // Set initial start date from input value
+        if (startDateInput.value) {
+            startDate = new Date(startDateInput.value);
+        }
+    }
+    initMap();
+});

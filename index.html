@@ -6,10 +6,24 @@
     <title>Mon Voyage Interrail - Carte Interactive</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="styles.css" />
+    <style>
+        .sortable-ghost {
+            opacity: 0.5;
+            background-color: #f0f0f0;
+        }
+        .city-row {
+            cursor: move;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>🚆 Mon Voyage Interrail en Europe - Itinéraire Classique</h1>
+        
+        <div class="start-date-picker">
+            <label for="startDate">Date de départ : </label>
+            <input type="date" id="startDate" value="2026-08-01">
+        </div>
         
         <!-- Edit Panel -->
         <div class="edit-panel">
@@ -27,6 +41,7 @@
                         <tr>
                             <th>Ordre</th>
                             <th>Ville</th>
+                            <th>Coordonnées</th>
                             <th>Jours</th>
                             <th>Prix (€)</th>
                             <th>Actions</th>
@@ -39,6 +54,17 @@
             </div>
         </div>
         
+        <!-- Itinerary Timeline -->
+        <div class="itinerary-container">
+            <h2 class="itinerary-title">
+                <span class="itinerary-icon">🚆</span>
+                Mon Itinéraire
+            </h2>
+            <div class="journey-timeline" id="itineraryTimeline">
+                <!-- Journey will be populated by JavaScript -->
+            </div>
+        </div>
+
         <!-- Recap Panel -->
         <div class="recap-panel">
             <h2>📊 Récapitulatif du Voyage</h2>
@@ -62,6 +88,10 @@
                 <div class="stat-card">
                     <div class="stat-value" id="avgPrice">0</div>
                     <div class="stat-label">Prix/Trajet (moy.)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalDistance">0</div>
+                    <div class="stat-label">Distance Totale (km)</div>
                 </div>
             </div>
         </div>
@@ -131,6 +161,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

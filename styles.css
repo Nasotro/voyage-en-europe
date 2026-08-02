@@ -1,0 +1,706 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+/* Start Date Picker */
+.start-date-picker {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.start-date-picker label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-right: 10px;
+}
+
+.start-date-picker input[type="date"] {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.start-date-picker input[type="date"]:hover {
+    border-color: #4a90e2;
+}
+
+.start-date-picker input[type="date"]:focus {
+    outline: none;
+    border-color: #4a90e2;
+}
+
+.map-container {
+    height: 600px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+    border-radius: 10px;
+}
+
+.addresses {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.addresses h2 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.city-section {
+    margin-bottom: 20px;
+}
+
+.city-section h3 {
+    color: #3498db;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.city-section ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.city-section li {
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.city-section li:before {
+    content: "•";
+    color: #3498db;
+    position: absolute;
+    left: 0;
+}
+
+.legend {
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    font-size: 14px;
+}
+
+.legend i {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    border-radius: 50%;
+    background-color: #3498db;
+}
+
+/* Edit Panel Styles */
+.edit-panel {
+    background-color: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.edit-panel:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.edit-panel h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 15px;
+    font-weight: 600;
+}
+
+/* Recap Panel Styles */
+.recap-panel {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.recap-panel:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.recap-panel h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 15px;
+    font-weight: 600;
+}
+
+.recap-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.stat-card {
+    flex: 1;
+    min-width: 130px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px 15px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.stat-value {
+    font-size: 2.2em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4a90e2, #2ecc71);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 0.9em;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 500;
+}
+
+.panel-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+.btn-success {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #27ae60;
+}
+
+.btn-import {
+    background-color: #e67e22;
+    color: white;
+}
+
+.btn-import:hover {
+    background-color: #d35400;
+}
+
+.btn:hover {
+    background-color: #ecf0f1;
+}
+
+.cities-table-container {
+    overflow-x: auto;
+}
+
+#citiesTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#citiesTable th,
+#citiesTable td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#citiesTable th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+#citiesTable tr:hover {
+    background-color: #f5f5f5;
+}
+
+.city-row {
+    transition: background-color 0.2s;
+}
+
+.city-row input[type="text"],
+.city-row input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.city-row input[type="number"] {
+    width: 80px;
+}
+
+.city-row .delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.city-row .delete-btn:hover {
+    background-color: #c0392b;
+}
+
+.city-row .move-btn {
+    background-color: #3498db;
+    color: white;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 2px;
+}
+
+.city-row .move-btn:hover {
+    background-color: #2980b9;
+}
+
+.city-row .move-btn:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+/* Find Price button */
+.find-price-btn {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 3px 6px;
+    transition: background-color 0.2s;
+}
+
+.find-price-btn:hover {
+    background-color: #27ae60;
+}
+
+/* ==========================================
+   JOURNEY TIMELINE - Compact Design
+   ========================================== */
+
+.itinerary-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    padding: 20px 15px;
+    margin: 15px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    position: relative;
+}
+
+.itinerary-title {
+    text-align: center;
+    color: #2c3e50;
+    margin: 0 0 20px 0;
+    font-size: 1.4em;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.itinerary-icon {
+    font-size: 1em;
+    margin-right: 8px;
+}
+
+/* The Journey Line - Left-aligned */
+.journey-timeline {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto;
+    padding-left: 25px;
+}
+
+/* Vertical connecting line on the left */
+.journey-timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 20px;
+    bottom: 20px;
+    width: 2px;
+    background: linear-gradient(to bottom, #e8e8e8 0%, #b8b8b8 50%, #e8e8e8 100%);
+    z-index: 1;
+}
+
+/* City Node - Left-aligned with line */
+.city-node {
+    position: relative;
+    padding: 5px 0 5px 45px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+/* City dot on the line */
+.city-dot {
+    position: absolute;
+    left: 10px;
+    top: 15px;
+    width: 14px;
+    height: 14px;
+    background: white;
+    border: 3px solid #4a90e2;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+    transition: all 0.3s ease;
+}
+
+.city-node:hover .city-dot {
+    transform: translateX(-50%) scale(1.15);
+    box-shadow: 0 3px 10px rgba(74, 144, 226, 0.5);
+}
+
+/* City Card */
+.city-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: default;
+    border-left: 3px solid #4a90e2;
+    overflow: hidden;
+}
+
+.city-card:hover {
+    transform: translateX(3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.18);
+}
+
+.city-name {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.city-info {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 0.85em;
+    color: #7f8c8d;
+}
+
+.city-dates {
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.city-country {
+    color: #7f8c8d;
+}
+
+.city-country i {
+    color: #4a90e2;
+}
+
+.city-info span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.city-info span i {
+    color: #4a90e2;
+}
+
+.city-days {
+    color: #27ae60;
+    font-weight: 600;
+}
+
+.city-days i {
+    color: #27ae60;
+}
+
+/* City Edit Panel - appears when clicking on a city in timeline */
+.city-edit-panel {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 350px;
+    margin: 10px 0 10px 40px;
+    border-left: 4px solid #3498db;
+    animation: slideIn 0.3s ease;
+    z-index: 10;
+    position: relative;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+        max-height: 0;
+        overflow: hidden;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 500px;
+    }
+}
+
+.edit-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.edit-panel-title {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.close-panel-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 24px;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.close-panel-btn:hover {
+    background: #c0392b;
+}
+
+.edit-panel-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9em;
+}
+
+.form-group input[type="number"] {
+    padding: 8px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.form-group input[type="number"]:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.edit-panel-dates {
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    font-weight: 600;
+    color: #27ae60;
+}
+
+.update-days-btn {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+    margin-top: 5px;
+}
+
+.update-days-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+}
+
+/* Trip Connector - Subtle link between cities */
+.trip-connector {
+    position: relative;
+    min-height: 25px;
+    padding: 8px 0 0 20px;
+    margin-bottom: 0;
+    z-index: 5;
+}
+
+.trip-connector::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #e0e0e0, #c0c0c0, #e0e0e0);
+    z-index: 1;
+}
+
+/* Trip info - always visible, confident appearance */
+.trip-info {
+    display: inline-block;
+    margin-left: 20px;
+    padding: 3px 0;
+    font-size: 0.85em;
+    color: #555;
+    font-weight: 500;
+    white-space: nowrap;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+
+.trip-info:hover {
+    text-decoration: underline;
+    border-bottom-color: #555;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.trip-connector:hover::before {
+    background: #4a90e2;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.city-node {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.city-node:nth-child(1) { animation-delay: 0.05s; }
+.city-node:nth-child(2) { animation-delay: 0.1s; }
+.city-node:nth-child(3) { animation-delay: 0.15s; }
+.city-node:nth-child(4) { animation-delay: 0.2s; }
+.city-node:nth-child(5) { animation-delay: 0.25s; }
+.city-node:nth-child(6) { animation-delay: 0.3s; }
+.city-node:nth-child(7) { animation-delay: 0.35s; }
+.city-node:nth-child(8) { animation-delay: 0.4s; }
+
+
+
+@media (max-width: 768px) {
+    .map-container {
+        height: 400px;
+    }
+    
+    .panel-controls {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+    
+    #citiesTable th,
+    #citiesTable td {
+        padding: 8px 5px;
+    }
+}

@@ -1,0 +1,44 @@
+{
+  "cities": [
+    {
+      "name": "Vienne",
+      "coords": [48.2082, 16.3738],
+      "description": "<b>Vienne, Autriche</b><br>Palais de Schönbrunn, Opéra, Café Central, Musée du Belvédère",
+      "days": 3
+    },
+    {
+      "name": "Prague",
+      "coords": [50.0755, 14.4378],
+      "description": "<b>Prague, République Tchèque</b><br>Pont Charles, Château de Prague, Horloge astronomique, Quartier de Malá Strana",
+      "days": 3
+    },
+    {
+      "name": "Budapest",
+      "coords": [47.4979, 19.0402],
+      "description": "<b>Budapest, Hongrie</b><br>Parlement, Bains Széchenyi, Bastion des Pêcheurs, Ruine bars",
+      "days": 4
+    },
+    {
+      "name": "Bratislava",
+      "coords": [48.1486, 17.1077],
+      "description": "<b>Bratislava, Slovaquie</b><br>Château de Bratislava, Vieille Ville, Statue de Cumil",
+      "days": 2
+    },
+    {
+      "name": "Munich",
+      "coords": [48.1351, 11.582],
+      "description": "<b>Munich, Allemagne</b><br>Marienplatz, Englischer Garten, Musée BMW, Oktoberfest (si fin septembre)",
+      "days": 3
+    },
+    {
+      "name": "Salzbourg",
+      "coords": [47.8095, 13.055],
+      "description": "<b>Salzbourg, Autriche</b><br>Forteresse de Hohensalzburg, Maison de Mozart, Jardin de Mirabell, Lac Wolfgang",
+      "days": 2
+    }
+  ],
+  "routeOrder": [0, 1, 2, 3, 4, 5],
+  "exportedAt": "2026-08-01T20:01:46.438Z",
+  "version": "1.0",
+  "name": "Centre-Europe Culturel"
+}
