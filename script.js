@@ -481,6 +481,7 @@ window.closeCityDetails = function() {
 // ==========================================
 // Render Timeline
 // ==========================================
+function renderTimeline() {
     const timeline = document.getElementById('itineraryTimeline');
     if (!timeline) return;
     
