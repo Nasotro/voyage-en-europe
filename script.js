@@ -319,6 +319,7 @@ window.updateCityDaysFromPanel = function(cityIndex, days) {
 // Update city name and days from timeline panel
 window.updateCityFromPanel = function(cityIndex, name, days) {
     const city = cities[cityIndex];
+    const nameChanged = name && name !== city.name;
     city.name = name || city.name;
     city.days = parseInt(days) || 1;
     
@@ -330,6 +331,14 @@ window.updateCityFromPanel = function(cityIndex, name, days) {
     
     // Update the cities table in the edit panel
     renderCitiesTable();
+    
+    // Geocode if the name changed
+    if (nameChanged) {
+        const nameInput = document.getElementById(`nameInput-${cityIndex}`);
+        if (nameInput) {
+            geocodeCity(city, nameInput);
+        }
+    }
     
     // Close the panel after update
     closeAllPanels();
