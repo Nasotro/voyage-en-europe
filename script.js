@@ -1023,7 +1023,8 @@ function initTimelineSortable() {
     window.timelineSortable = new Sortable(timeline, {
         animation: 150,
         ghostClass: 'sortable-ghost',
-        filter: '.trip-connector, .city-edit-panel', // Don't allow dragging these
+        filter: '.trip-connector, .city-edit-panel',
+        preventOnFilter: false,
         onStart: function(evt) {
             // Close any open panels when starting to drag
             window.closeAllPanels();
