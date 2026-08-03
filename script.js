@@ -961,6 +961,8 @@ window.addEventListener('click', (e) => {
 
 // Initialize when DOM is loaded
 window.addEventListener('DOMContentLoaded', () => {
+    startBgAnimation();
+
     const loaded = loadFromStorage();
 
     const startDateInput = document.getElementById('startDate');
@@ -979,3 +981,188 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     initMap();
 });
+
+window.addEventListener('resize', () => {
+    drawBackgroundPattern();
+});
+
+let bgAnimFrame;
+let bgDashOffset = 0;
+
+function startBgAnimation() {
+    cancelAnimationFrame(bgAnimFrame);
+    function tick() {
+        bgDashOffset += 0.4;
+        drawBackgroundPattern();
+        bgAnimFrame = requestAnimationFrame(tick);
+    }
+    tick();
+}
+
+function drawBackgroundPattern() {
+    const canvas = document.querySelector('.bg-pattern');
+    if (!canvas) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const w = window.innerWidth;
+    const h = Math.max(document.documentElement.scrollHeight, window.innerHeight);
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, w, h);
+    ctx.scale(dpr, dpr);
+
+    const accentColor = '#c8a45c';
+
+    function seededRandom(seed) {
+        let s = seed;
+        return function() {
+            s = (s * 16807 + 0) % 2147483647;
+            return (s - 1) / 2147483646;
+        };
+    }
+    const rand = seededRandom(42);
+
+    const spacing = 200;
+    const gridCols = Math.ceil(w / spacing) + 2;
+    const gridRows = Math.ceil(h / spacing) + 2;
+
+    const nodes = [];
+
+    for (let gy = -1; gy < gridRows; gy++) {
+        for (let gx = -1; gx < gridCols; gx++) {
+            const bx = gx * spacing;
+            const by = gy * spacing;
+            const nx = bx + spacing * 0.1 + rand() * spacing * 0.8;
+            const ny = by + spacing * 0.1 + rand() * spacing * 0.8;
+            nodes.push({
+                x: nx, y: ny,
+                r: 1.6 + rand() * 3.2,
+                a: 0.16 + rand() * 0.28,
+                shape: Math.floor(rand() * 4),
+                rotation: rand() * Math.PI * 2
+            });
+        }
+    }
+
+    const edges = [];
+    const maxDist = spacing * 1.35;
+
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+            const dx = nodes[i].x - nodes[j].x;
+            const dy = nodes[i].y - nodes[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < maxDist && dist > spacing * 0.3) {
+                edges.push({ a: i, b: j, dist: dist });
+            }
+        }
+    }
+
+    edges.sort((a, b) => a.dist - b.dist);
+
+    const parent = new Array(nodes.length).fill(null).map((_, i) => i);
+    function findRoot(v) {
+        while (parent[v] !== v) {
+            parent[v] = parent[parent[v]];
+            v = parent[v];
+        }
+        return v;
+    }
+
+    const trunkEdges = [];
+    for (const e of edges) {
+        const ra = findRoot(e.a);
+        const rb = findRoot(e.b);
+        if (ra !== rb) {
+            parent[ra] = rb;
+            trunkEdges.push(e);
+        }
+    }
+
+    const extraEdges = [];
+    for (const e of edges) {
+        if (!trunkEdges.some(te => te.a === e.a && te.b === e.b) && rand() < 0.22) {
+            extraEdges.push(e);
+        }
+    }
+
+    const allEdges = [...trunkEdges, ...extraEdges];
+
+    const trunkSet = new Set(trunkEdges.map(e => `${e.a}-${e.b}`));
+    const trunkAlphaBase = 0.22;
+    const branchAlphaBase = 0.13;
+
+    let ticker = 0;
+    allEdges.forEach(e => {
+        const isTrunk = trunkSet.has(`${e.a}-${e.b}`);
+        ticker++;
+        const dashLen = isTrunk ? 7 + rand() * 10 : 5 + rand() * 8;
+        const gapLen = isTrunk ? 5 + rand() * 6 : 6 + rand() * 8;
+        const sw = isTrunk ? 0.9 + rand() * 1.0 : 0.5 + rand() * 0.5;
+        const alpha = isTrunk ? trunkAlphaBase + rand() * 0.20 : branchAlphaBase + rand() * 0.14;
+        const speed = isTrunk ? 1.0 + rand() * 1.5 : 2.0 + rand() * 2.5;
+
+        const from = nodes[e.a];
+        const to = nodes[e.b];
+        const mx = (from.x + to.x) / 2 + (rand() - 0.5) * 60;
+        const my = (from.y + to.y) / 2 + (rand() - 0.5) * 60;
+
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.quadraticCurveTo(mx, my, to.x, to.y);
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = sw;
+        ctx.globalAlpha = alpha;
+        ctx.setLineDash([dashLen, gapLen]);
+        ctx.lineDashOffset = bgDashOffset * speed;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.setLineDash([]);
+    });
+
+    nodes.forEach(node => {
+        ctx.fillStyle = accentColor;
+        ctx.globalAlpha = node.a;
+
+        switch (node.shape) {
+            case 0: // Circle
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+            case 1: // Diamond
+                ctx.beginPath();
+                ctx.moveTo(node.x, node.y - node.r);
+                ctx.lineTo(node.x + node.r, node.y);
+                ctx.lineTo(node.x, node.y + node.r);
+                ctx.lineTo(node.x - node.r, node.y);
+                ctx.closePath();
+                ctx.fill();
+                break;
+            case 2: // Triangle
+                ctx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                    const angle = node.rotation + (i * Math.PI * 2) / 3;
+                    const px = node.x + Math.cos(angle) * node.r;
+                    const py = node.y + Math.sin(angle) * node.r;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.fill();
+                break;
+            case 3: // Cross / plus
+                {
+                    const s = node.r * 0.35;
+                    ctx.fillRect(node.x - s, node.y - node.r, s * 2, node.r * 2);
+                    ctx.fillRect(node.x - node.r, node.y - s, node.r * 2, s * 2);
+                }
+                break;
+        }
+        ctx.globalAlpha = 1;
+    });
+}
