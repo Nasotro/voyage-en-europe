@@ -4,49 +4,57 @@ let cities = [
         name: "Paris",
         coords: [48.8566, 2.3522],
         description: "<b>Paris, France</b><br>Tour Eiffel, Musée du Louvre, Notre-Dame, Montmartre",
-        days: 0
+        days: 0,
+        details: ""
     },
     {
         name: "Vienne",
         coords: [48.2082, 16.3738],
         description: "<b>Vienne, Autriche</b><br>Palais de Schönbrunn, Opéra, Café Central",
-        days: 2
+        days: 2,
+        details: ""
     },
     {
         name: "Prague",
         coords: [50.0755, 14.4378],
         description: "<b>Prague, République Tchèque</b><br>Pont Charles, Château de Prague",
-        days: 2
+        days: 2,
+        details: ""
     },
     {
         name: "Budapest",
         coords: [47.4979, 19.0402],
         description: "<b>Budapest, Hongrie</b><br>Parlement, Bains Széchenyi",
-        days: 2
+        days: 2,
+        details: ""
     },
     {
         name: "Bratislava",
         coords: [48.1486, 17.1077],
         description: "<b>Bratislava, Slovaquie</b><br>Château, Vieille Ville",
-        days: 1
+        days: 1,
+        details: ""
     },
     {
         name: "Munich",
         coords: [48.1351, 11.5820],
         description: "<b>Munich, Allemagne</b><br>Marienplatz, Englischer Garten",
-        days: 2
+        days: 2,
+        details: ""
     },
     {
         name: "Salzbourg",
         coords: [47.8095, 13.0550],
         description: "<b>Salzbourg, Autriche</b><br>Forteresse de Hohensalzburg, Maison de Mozart",
-        days: 2
+        days: 2,
+        details: ""
     },
     {
         name: "Paris",
         coords: [48.8566, 2.3522],
         description: "<b>Paris, France</b><br>Tour Eiffel, Musée du Louvre, Notre-Dame, Montmartre",
-        days: 0
+        days: 0,
+        details: ""
     }
 ];
 
@@ -259,14 +267,14 @@ window.addCityFromTimeline = function() {
         name: 'Nouvelle Ville',
         coords: [0, 0],
         description: '',
-        days: 1
+        days: 1,
+        details: ''
     };
     cities.push(newCity);
     routeOrder.push(cities.length - 1);
     routePrices.push(0);
     drawMap();
     
-    // After the map is drawn, open the edit panel for the new city
     setTimeout(() => {
         const newCityIndex = cities.length - 1;
         const panel = document.getElementById(`cityEditPanel-${newCityIndex}`);
@@ -375,8 +383,63 @@ window.updateTripPriceFromPanel = function(tripIndex, price) {
     closeAllPanels();
 };
 
-// Render the beautiful journey timeline
-function renderTimeline() {
+// ==========================================
+// City Details Modal
+// ==========================================
+
+window.openCityDetails = function(cityIndex) {
+    const city = cities[cityIndex];
+    let modal = document.getElementById('cityDetailsModal');
+    
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'cityDetailsModal';
+        modal.className = 'details-modal-overlay';
+        modal.innerHTML = `
+            <div class="details-modal">
+                <div class="details-modal-header">
+                    <h2 id="detailsModalTitle">Détails de la ville</h2>
+                    <button class="details-modal-close" onclick="window.closeCityDetails()">×</button>
+                </div>
+                <div class="details-modal-body">
+                    <textarea id="detailsTextarea" placeholder="Ajoutez des notes, points d'intérêt, adresses..."></textarea>
+                </div>
+                <div class="details-modal-footer">
+                    <button class="btn btn-primary" onclick="window.closeCityDetails()">Fermer</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                window.closeCityDetails();
+            }
+        });
+    }
+    
+    document.getElementById('detailsModalTitle').textContent = `Détails - ${city.name}`;
+    document.getElementById('detailsTextarea').value = city.details || '';
+    modal.dataset.cityIndex = cityIndex;
+    modal.style.display = 'flex';
+    
+    document.getElementById('detailsTextarea').focus();
+};
+
+window.closeCityDetails = function() {
+    const modal = document.getElementById('cityDetailsModal');
+    if (modal) {
+        const cityIndex = parseInt(modal.dataset.cityIndex);
+        if (!isNaN(cityIndex) && cities[cityIndex]) {
+            cities[cityIndex].details = document.getElementById('detailsTextarea').value;
+        }
+        modal.style.display = 'none';
+    }
+};
+
+// ==========================================
+// Render Timeline
+// ==========================================
     const timeline = document.getElementById('itineraryTimeline');
     if (!timeline) return;
     
@@ -418,6 +481,10 @@ function renderTimeline() {
                     <span class="city-dates">${arrivalShort} - ${departureShort}</span>
                     <span class="city-country">${countryDisplay.flag} ${countryDisplay.country}</span>
                 </div>
+                <div class="city-card-buttons">
+                    <button class="city-card-btn city-card-btn-edit" title="Modifier"><span class="btn-icon">✏️</span> Modifier</button>
+                    <button class="city-card-btn city-card-btn-details" title="Voir détails"><span class="btn-icon">📋</span> Détails</button>
+                </div>
             </div>
             <div class="city-edit-panel" id="cityEditPanel-${cityIndex}" style="display: none;">
                 <div class="edit-panel-header">
@@ -445,27 +512,25 @@ function renderTimeline() {
         `;
         timeline.appendChild(cityNode);
         
-        // Add click handler to the city card - toggle panel
-        const cityCard = cityNode.querySelector('.city-card');
-        cityCard.addEventListener('click', (e) => {
-            // Don't trigger if clicking on a child element that might have its own handler
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
-            
+        // Add click handler to the edit button in the city card
+        const editBtn = cityNode.querySelector('.city-card-btn-edit');
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.closeAllPanels();
+            window.closeCityDetails();
             const panel = document.getElementById(`cityEditPanel-${cityIndex}`);
             if (panel) {
-                // Check if this panel is currently open
-                if (panel.style.display === 'block') {
-                    // Close this panel
-                    panel.style.display = 'none';
-                    window.currentOpenCityIndex = null;
-                } else {
-                    // Close all panels first
-                    window.closeAllCityPanels();
-                    // Open this panel
-                    panel.style.display = 'block';
-                    window.currentOpenCityIndex = cityIndex;
-                }
+                panel.style.display = 'block';
+                window.currentOpenCityIndex = cityIndex;
             }
+        });
+
+        // Add click handler to the details button in the city card
+        const detailsBtn = cityNode.querySelector('.city-card-btn-details');
+        detailsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.closeAllPanels();
+            window.openCityDetails(cityIndex);
         });
         
         // Add Trip Connector (except after last city)
@@ -712,6 +777,7 @@ function importItinerary(event) {
                     if (!city.days) city.days = 1;
                     if (!city.description) city.description = '';
                     if (!city.coords) city.coords = [0, 0];
+                    if (city.details === undefined) city.details = '';
                 });
                 
                 // Ensure routeOrder references valid indices
@@ -770,7 +836,8 @@ function initEditPanel() {
             name: 'Nouvelle Ville',
             coords: [0, 0],
             description: '',
-            days: 1
+            days: 1,
+            details: ''
         };
         cities.push(newCity);
         routeOrder.push(cities.length - 1);

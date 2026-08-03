@@ -835,3 +835,169 @@ h1 {
         padding: 8px 5px;
     }
 }
+
+/* ==========================================
+   City Card Buttons (in timeline)
+   ========================================== */
+
+.city-card-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.city-card-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-icon {
+    font-size: 1em;
+}
+
+.city-card-btn-edit {
+    background: #3498db;
+    color: white;
+}
+
+.city-card-btn-edit:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+.city-card-btn-details {
+    background: #9b59b6;
+    color: white;
+}
+
+.city-card-btn-details:hover {
+    background: #8e44ad;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(155, 89, 182, 0.3);
+}
+
+/* ==========================================
+   Details Modal Overlay
+   ========================================== */
+
+.details-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInOverlay 0.2s ease;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.details-modal {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUpModal 0.3s ease;
+}
+
+@keyframes slideUpModal {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.details-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 2px solid #eee;
+}
+
+.details-modal-header h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.3em;
+}
+
+.details-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.8em;
+    color: #999;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.details-modal-close:hover {
+    color: #e74c3c;
+}
+
+.details-modal-body {
+    padding: 25px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.details-modal-body textarea {
+    width: 100%;
+    min-height: 300px;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.details-modal-body textarea:focus {
+    outline: none;
+    border-color: #9b59b6;
+    box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+}
+
+.details-modal-body textarea::placeholder {
+    color: #bbb;
+}
+
+.details-modal-footer {
+    padding: 15px 25px;
+    border-top: 2px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
