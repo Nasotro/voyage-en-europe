@@ -66,6 +66,38 @@ let polylines = [];
 // Store start date for trip calculations
 let startDate = new Date('2026-08-01');
 
+const STORAGE_KEY = 'interrail-itinerary';
+
+function saveToStorage() {
+    const data = {
+        cities: cities,
+        routeOrder: routeOrder,
+        routePrices: routePrices,
+        startDate: startDate.toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadFromStorage() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return false;
+    try {
+        const data = JSON.parse(stored);
+        if (data.cities && data.routeOrder) {
+            cities = data.cities;
+            routeOrder = data.routeOrder;
+            routePrices = data.routePrices || [];
+            if (data.startDate) {
+                startDate = new Date(data.startDate);
+            }
+            return true;
+        }
+    } catch (e) {
+        console.error('Failed to parse stored itinerary:', e);
+    }
+    return false;
+}
+
 // Helper function to convert city name to URL slug for Omio
 function cityToSlug(cityName) {
     // Map French city names to English for Omio URLs
@@ -673,6 +705,8 @@ function drawMap() {
     renderCitiesTable();
     updateRecapPanel();
     renderTimeline();
+
+    saveToStorage();
 }
 
 // Export itinerary to JSON and download
@@ -1092,14 +1126,18 @@ window.addEventListener('click', (e) => {
 
 // Initialize when DOM is loaded
 window.addEventListener('DOMContentLoaded', () => {
-    // Initialize start date from input
+    const loaded = loadFromStorage();
+
     const startDateInput = document.getElementById('startDate');
     if (startDateInput) {
+        if (loaded) {
+            startDateInput.value = startDate.toISOString().split('T')[0];
+        }
         startDateInput.addEventListener('change', (e) => {
             startDate = new Date(e.target.value);
+            saveToStorage();
             renderTimeline();
         });
-        // Set initial start date from input value
         if (startDateInput.value) {
             startDate = new Date(startDateInput.value);
         }
