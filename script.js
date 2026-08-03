@@ -349,9 +349,8 @@ window.updateCityDaysFromPanel = function(cityIndex, days) {
     // Update the recap panel
     updateRecapPanel();
     
-    // Update the cities table in the edit panel
-    renderCitiesTable();
-    
+    saveToStorage();
+
     // Close the panel after update
     closeAllPanels();
 };
@@ -369,9 +368,8 @@ window.updateCityFromPanel = function(cityIndex, name, days) {
     // Update the recap panel
     updateRecapPanel();
     
-    // Update the cities table in the edit panel
-    renderCitiesTable();
-    
+    saveToStorage();
+
     // Geocode if the name changed
     if (nameChanged) {
         const nameInput = document.getElementById(`nameInput-${cityIndex}`);
@@ -417,9 +415,8 @@ window.updateTripPriceFromPanel = function(tripIndex, price) {
     // Update the recap panel
     updateRecapPanel();
     
-    // Update the cities table in the edit panel
-    renderCitiesTable();
-    
+    saveToStorage();
+
     // Close the panel after update
     closeAllPanels();
 };
@@ -473,6 +470,7 @@ window.closeCityDetails = function() {
         const cityIndex = parseInt(modal.dataset.cityIndex);
         if (!isNaN(cityIndex) && cities[cityIndex]) {
             cities[cityIndex].details = document.getElementById('detailsTextarea').value;
+            saveToStorage();
         }
         modal.style.display = 'none';
     }
@@ -767,8 +765,7 @@ function drawMap() {
         map.fitBounds(group.getBounds().pad(0.5));
     }
 
-    // Update the edit panel, recap, and timeline
-    renderCitiesTable();
+    // Update the recap and timeline
     updateRecapPanel();
     renderTimeline();
 
@@ -874,70 +871,6 @@ function importItinerary(event) {
 
 // Initialize the edit panel functionality
 function initEditPanel() {
-    // Add city button
-    document.getElementById('addCityBtn').addEventListener('click', () => {
-        const newCity = {
-            name: 'Nouvelle Ville',
-            coords: [0, 0],
-            description: '',
-            days: 1,
-            details: ''
-        };
-        cities.push(newCity);
-        routeOrder.push(cities.length - 1);
-        routePrices.push(0);
-        drawMap();
-        
-        // Focus on the new city's name input so user can rename it immediately
-        setTimeout(() => {
-            const inputs = document.querySelectorAll('#citiesList input[type="text"]');
-            if (inputs.length > 0) {
-                inputs[inputs.length - 1].focus();
-            }
-        }, 100);
-    });
-
-    // Save button
-    document.getElementById('saveBtn').addEventListener('click', () => {
-        // Geocode any cities that don't have coordinates yet
-        const geocodePromises = [];
-        cities.forEach(city => {
-            if (!city.coords || (city.coords[0] === 0 && city.coords[1] === 0)) {
-                geocodePromises.push(
-                    new Promise(resolve => {
-                        const cityName = city.name.trim();
-                        if (cityName) {
-                            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityName)}&limit=1`;
-                            fetch(url)
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data && data.length > 0) {
-                                        city.coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-                                    }
-                                    resolve();
-                                })
-                                .catch(() => resolve());
-                        } else {
-                            city.coords = [0, 0];
-                            resolve();
-                        }
-                    })
-                );
-            }
-        });
-        
-        // If there are cities to geocode, wait for them all to finish
-        if (geocodePromises.length > 0) {
-            Promise.all(geocodePromises).then(() => {
-                drawMap();
-                alert('Itinéraire sauvegardé et carte mise à jour !');
-            });
-        } else {
-            drawMap();
-            alert('Itinéraire sauvegardé et carte mise à jour !');
-        }
-    });
-
     // Export button
     document.getElementById('exportBtn').addEventListener('click', exportItinerary);
 
@@ -950,175 +883,8 @@ function initEditPanel() {
     document.getElementById('importFile').addEventListener('change', importItinerary);
 
     // Initial render
-    renderCitiesTable();
     updateRecapPanel();
     renderTimeline();
-}
-
-// Render the cities table in the edit panel
-function renderCitiesTable() {
-    const tbody = document.getElementById('citiesList');
-    tbody.innerHTML = '';
-
-    routeOrder.forEach((cityIndex, position) => {
-        const city = cities[cityIndex];
-        const row = document.createElement('tr');
-        row.className = 'city-row';
-        row.dataset.cityIndex = cityIndex;
-
-        // Order cell
-        const orderCell = document.createElement('td');
-        orderCell.textContent = position + 1;
-        row.appendChild(orderCell);
-
-        // City name cell
-        const nameCell = document.createElement('td');
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.value = city.name;
-        nameInput.addEventListener('change', (e) => {
-            city.name = e.target.value;
-            // Auto-geocode when city name changes
-            geocodeCity(city, nameInput);
-        });
-        nameCell.appendChild(nameInput);
-        row.appendChild(nameCell);
-
-        // Coordinates cell
-        const coordsCell = document.createElement('td');
-        coordsCell.textContent = `${city.coords[0].toFixed(4)}, ${city.coords[1].toFixed(4)}`;
-        row.appendChild(coordsCell);
-
-        // Days cell
-        const daysCell = document.createElement('td');
-        const daysInput = document.createElement('input');
-        daysInput.type = 'number';
-        daysInput.value = city.days;
-        daysInput.min = '1';
-        daysInput.addEventListener('change', (e) => {
-            city.days = parseInt(e.target.value) || 1;
-            updateRecapPanel();
-        });
-        daysCell.appendChild(daysInput);
-        row.appendChild(daysCell);
-
-        // Price cell (price from this city to the next)
-        const priceCell = document.createElement('td');
-        if (position < routeOrder.length - 1) {
-            const priceContainer = document.createElement('div');
-            priceContainer.style.display = 'flex';
-            priceContainer.style.gap = '5px';
-            priceContainer.style.alignItems = 'center';
-            
-            const priceInput = document.createElement('input');
-            priceInput.type = 'number';
-            priceInput.value = routePrices[position] || 0;
-            priceInput.min = '0';
-            priceInput.placeholder = '0';
-            priceInput.style.width = '70px';
-            priceInput.addEventListener('change', (e) => {
-                routePrices[position] = parseFloat(e.target.value) || 0;
-                updateRecapPanel();
-            });
-            priceContainer.appendChild(priceInput);
-            
-            // Add Find Price button
-            const findPriceBtn = document.createElement('button');
-            findPriceBtn.className = 'find-price-btn';
-            findPriceBtn.textContent = '🔍';
-            findPriceBtn.title = 'Trouver le prix en ligne';
-            findPriceBtn.style.padding = '3px 6px';
-            findPriceBtn.style.fontSize = '12px';
-            findPriceBtn.style.cursor = 'pointer';
-            findPriceBtn.addEventListener('click', () => {
-                const fromCity = cities[routeOrder[position]].name;
-                const toCity = cities[routeOrder[position + 1]].name;
-                const fromSlug = cityToSlug(fromCity);
-                const toSlug = cityToSlug(toCity);
-                window.open(`https://www.omio.com/trains/${fromSlug}/${toSlug}`, '_blank');
-            });
-            priceContainer.appendChild(findPriceBtn);
-            
-            priceCell.appendChild(priceContainer);
-        } else {
-            priceCell.textContent = '-';
-        }
-        row.appendChild(priceCell);
-
-        // Actions cell
-        const actionsCell = document.createElement('td');
-
-        // Delete button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = '×';
-        deleteBtn.title = 'Supprimer';
-        deleteBtn.addEventListener('click', () => {
-            if (confirm(`Supprimer ${city.name} de l'itinéraire?`)) {
-                // Remove from routeOrder
-                routeOrder.splice(position, 1);
-                // Remove corresponding price (if this is not the last city)
-                if (position < routePrices.length) {
-                    routePrices.splice(position, 1);
-                }
-                drawMap();
-            }
-        });
-        actionsCell.appendChild(deleteBtn);
-
-        row.appendChild(actionsCell);
-        tbody.appendChild(row);
-    });
-    
-    // Initialize drag-and-drop sorting
-    initSortable();
-    
-    // Update recap and timeline after rendering
-    updateRecapPanel();
-    renderTimeline();
-}
-
-// Initialize SortableJS for drag-and-drop reordering in edit panel
-function initSortable() {
-    const tbody = document.getElementById('citiesList');
-    
-    // Destroy existing Sortable if it exists
-    if (window.citySortable) {
-        window.citySortable.destroy();
-    }
-    
-    window.citySortable = new Sortable(tbody, {
-        animation: 150,
-        ghostClass: 'sortable-ghost',
-        onEnd: function(evt) {
-            // Build a map of existing prices by city pair
-            const priceMap = {};
-            for (let i = 0; i < routeOrder.length - 1; i++) {
-                const from = routeOrder[i];
-                const to = routeOrder[i + 1];
-                priceMap[`${from}-${to}`] = routePrices[i];
-            }
-            
-            // Rebuild routeOrder from DOM
-            const newRouteOrder = [];
-            tbody.querySelectorAll('.city-row').forEach(row => {
-                newRouteOrder.push(parseInt(row.dataset.cityIndex));
-            });
-            routeOrder = newRouteOrder;
-            
-            // Rebuild routePrices, preserving prices where city pairs match
-            const newPrices = [];
-            for (let i = 0; i < routeOrder.length - 1; i++) {
-                const from = routeOrder[i];
-                const to = routeOrder[i + 1];
-                // Try both directions (A-B and B-A)
-                newPrices.push(priceMap[`${from}-${to}`] || priceMap[`${to}-${from}`] || 0);
-            }
-            routePrices = newPrices;
-            
-            drawMap();
-        }
-    });
 }
 
 // Initialize SortableJS for drag-and-drop reordering in timeline
@@ -1169,7 +935,6 @@ function initTimelineSortable() {
             
             // Redraw the timeline and update everything
             renderTimeline();
-            renderCitiesTable();
             updateRecapPanel();
             drawMap();
         }

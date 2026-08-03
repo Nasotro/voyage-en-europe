@@ -26,32 +26,10 @@
         </div>
         
         <!-- Edit Panel -->
-        <div class="edit-panel">
-            <h2>⚙️ Modifier l'Itinéraire</h2>
-            <div class="panel-controls">
-                <button id="addCityBtn" class="btn">+ Ajouter une ville</button>
-                <button id="saveBtn" class="btn btn-primary">💾 Sauvegarder</button>
-                <button id="exportBtn" class="btn btn-success">📥 Exporter JSON</button>
-                <button id="importBtn" class="btn btn-import">📤 Importer JSON</button>
-                <input type="file" id="importFile" accept=".json" style="display: none;">
-            </div>
-            <div class="cities-table-container">
-                <table id="citiesTable">
-                    <thead>
-                        <tr>
-                            <th>Ordre</th>
-                            <th>Ville</th>
-                            <th>Coordonnées</th>
-                            <th>Jours</th>
-                            <th>Prix (€)</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="citiesList">
-                        <!-- Cities will be populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
+        <div class="panel-controls">
+            <button id="exportBtn" class="btn btn-success">📥 Exporter JSON</button>
+            <button id="importBtn" class="btn btn-import">📤 Importer JSON</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;">
         </div>
         
         <!-- Itinerary Timeline -->
