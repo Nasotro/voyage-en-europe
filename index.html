@@ -3,53 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Voyage Interrail - Carte Interactive</title>
+    <title>Voyage Interrail - Itin&#233;raire</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="styles.css" />
     <style>
-        .sortable-ghost {
-            opacity: 0.5;
-            background-color: #f0f0f0;
-        }
-        .city-row {
-            cursor: move;
-        }
+        .sortable-ghost { opacity: 0.5; background-color: rgba(200, 164, 92, 0.12); }
+        .city-row { cursor: move; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚆 Mon Voyage Interrail en Europe - Itinéraire Classique</h1>
+        <h1>Mon Voyage Interrail</h1>
         
         <div class="start-date-picker">
-            <label for="startDate">Date de départ : </label>
+            <label for="startDate">D&#233;part</label>
             <input type="date" id="startDate" value="2026-08-01">
         </div>
         
-        <!-- Edit Panel -->
         <div class="panel-controls">
-            <button id="exportBtn" class="btn btn-success">📥 Exporter JSON</button>
-            <button id="importBtn" class="btn btn-import">📤 Importer JSON</button>
+            <button id="exportBtn" class="btn btn-success">Exporter JSON</button>
+            <button id="importBtn" class="btn btn-import">Importer JSON</button>
             <input type="file" id="importFile" accept=".json" style="display: none;">
         </div>
         
-        <!-- Itinerary Timeline -->
         <div class="itinerary-container">
             <h2 class="itinerary-title">
-                <span class="itinerary-icon">🚆</span>
-                Mon Itinéraire
+                <span class="itinerary-icon">&#9702;</span>
+                Itin&#233;raire
             </h2>
             <div class="journey-timeline" id="itineraryTimeline">
-                <!-- Journey will be populated by JavaScript -->
             </div>
         </div>
 
-        <!-- Recap Panel -->
         <div class="recap-panel">
-            <h2>📊 Récapitulatif du Voyage</h2>
+            <h2>R&#233;capitulatif</h2>
             <div class="recap-stats">
                 <div class="stat-card">
                     <div class="stat-value" id="totalDays">0</div>
-                    <div class="stat-label">Jours Totaux</div>
+                    <div class="stat-label">Jours</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="totalCities">0</div>
@@ -57,19 +48,19 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="totalTrips">0</div>
-                    <div class="stat-label">Trajet</div>
+                    <div class="stat-label">Trajets</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="avgDays">0</div>
-                    <div class="stat-label">Jours/Ville (moy.)</div>
+                    <div class="stat-label">Jours/Ville</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="avgPrice">0</div>
-                    <div class="stat-label">Prix/Trajet (moy.)</div>
+                    <div class="stat-label">Prix/Trajet</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="totalDistance">0</div>
-                    <div class="stat-label">Distance Totale (km)</div>
+                    <div class="stat-label">Distance km</div>
                 </div>
             </div>
         </div>
@@ -77,62 +68,56 @@
         <div class="map-container">
             <div id="map"></div>
         </div>
+
         <div class="addresses">
-            <h2>📍 Adresses et Points d'Intérêt</h2>
+            <h2>Adresses &amp; Points d&#8217;Int&#233;r&#234;t</h2>
             <div class="city-section">
-                <h3>Paris, France</h3>
+                <h3>Paris</h3>
                 <ul>
-                    <li><strong>Gare principale :</strong> Gare du Nord (Rue de Dunkerque, 75010 Paris)</li>
-                    <li><strong>À voir :</strong> Tour Eiffel, Musée du Louvre, Cathédrale Notre-Dame, Montmartre, Champs-Élysées</li>
+                    <li><strong>Gare :</strong> Gare du Nord, Rue de Dunkerque, 75010 Paris</li>
+                    <li>Tour Eiffel, Mus&#233;e du Louvre, Cath&#233;drale Notre-Dame, Montmartre</li>
                 </ul>
             </div>
             <div class="city-section">
-                <h3>Vienne, Autriche</h3>
+                <h3>Vienne</h3>
                 <ul>
-                    <li><strong>Gare principale :</strong> Wien Hauptbahnhof (Hauptbahnhofstraße 1-3, 1100 Wien)</li>
-                    <li><strong>À voir :</strong> Palais de Schönbrunn, Opéra de Vienne, Café Central</li>
+                    <li><strong>Gare :</strong> Wien Hauptbahnhof, Hauptbahnhofstra&#223;e 1-3, 1100 Wien</li>
+                    <li>Palais de Sch&#246;nbrunn, Op&#233;ra, Caf&#233; Central</li>
                 </ul>
             </div>
             <div class="city-section">
-                <h3>Prague, République Tchèque</h3>
+                <h3>Prague</h3>
                 <ul>
-                    <li><strong>Gare principale :</strong> Praha hlavní nádraží (Wilsonova 8, 110 00 Praha)</li>
-                    <li><strong>À voir :</strong> Pont Charles, Château de Prague, Horloge Astronomique</li>
+                    <li><strong>Gare :</strong> Praha hlavn&#237; n&#225;dra&#382;&#237;, Wilsonova 8, 110 00 Praha</li>
+                    <li>Pont Charles, Ch&#226;teau de Prague, Horloge Astronomique</li>
                 </ul>
             </div>
             <div class="city-section">
-                <h3>Budapest, Hongrie</h3>
+                <h3>Budapest</h3>
                 <ul>
-                    <li><strong>Gare principale :</strong> Keleti pályaudvar (Baross tér 7-8, 1087 Budapest)</li>
-                    <li><strong>À voir :</strong> Parlement de Budapest, Bains Széchenyi, Bastion des Pêcheurs</li>
+                    <li><strong>Gare :</strong> Keleti p&#225;lyaudvar, Baross t&#233;r 7-8, 1087 Budapest</li>
+                    <li>Parlement, Bains Sz&#233;chenyi, Bastion des P&#234;cheurs</li>
                 </ul>
             </div>
             <div class="city-section">
-                <h3>Bratislava, Slovaquie</h3>
+                <h3>Bratislava</h3>
                 <ul>
-                    <li><strong>Gare principale :</strong> Bratislava hl.st. (Námestie 1. mája 1, 811 06 Bratislava)</li>
-                    <li><strong>À voir :</strong> Château de Bratislava, Vieille Ville, Danube</li>
+                    <li><strong>Gare :</strong> Bratislava hl.st., N&#225;mestie 1. m&#225;ja 1, 811 06 Bratislava</li>
+                    <li>Ch&#226;teau, Vieille Ville, Danube</li>
                 </ul>
             </div>
             <div class="city-section">
-                <h3>Munich, Allemagne</h3>
+                <h3>Munich</h3>
                 <ul>
-                    <li><strong>Gare principale :</strong> München Hauptbahnhof (Bayerstraße 10, 80335 München)</li>
-                    <li><strong>À voir :</strong> Marienplatz, Englischer Garten, Oktoberfest (si fin septembre)</li>
+                    <li><strong>Gare :</strong> M&#252;nchen Hbf, Bayerstra&#223;e 10, 80335 M&#252;nchen</li>
+                    <li>Marienplatz, Englischer Garten, Oktoberfest</li>
                 </ul>
             </div>
             <div class="city-section">
-                <h3>Salzbourg, Autriche</h3>
+                <h3>Salzbourg</h3>
                 <ul>
-                    <li><strong>Gare principale :</strong> Salzburg Hauptbahnhof (Südtiroler Platz 1, 5020 Salzburg)</li>
-                    <li><strong>À voir :</strong> Forteresse de Hohensalzburg, Maison de Mozart, Lac Wolfgang</li>
-                </ul>
-            </div>
-            <div class="city-section">
-                <h3>Paris, France</h3>
-                <ul>
-                    <li><strong>Gare principale :</strong> Gare du Nord (Rue de Dunkerque, 75010 Paris)</li>
-                    <li><strong>À voir :</strong> Tour Eiffel, Musée du Louvre, Cathédrale Notre-Dame, Montmartre, Champs-Élysées</li>
+                    <li><strong>Gare :</strong> Salzburg Hbf, S&#252;dtiroler Platz 1, 5020 Salzburg</li>
+                    <li>Forteresse de Hohensalzburg, Maison de Mozart, Lac Wolfgang</li>
                 </ul>
             </div>
         </div>

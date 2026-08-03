@@ -517,13 +517,13 @@ function renderTimeline() {
             <div class="city-card" data-city-index="${cityIndex}">
                 <div class="city-name">${city.name}</div>
                 <div class="city-info">
-                    <span class="city-days"><i>📅</i> ${city.days} jour${city.days > 1 ? 's' : ''}</span>
-                    <span class="city-dates">${arrivalShort} - ${departureShort}</span>
+                    <span class="city-days">${city.days} jour${city.days > 1 ? 's' : ''}</span>
+                    <span class="city-dates">${arrivalShort} &ndash; ${departureShort}</span>
                     <span class="city-country">${countryDisplay.flag} ${countryDisplay.country}</span>
                 </div>
                 <div class="city-card-buttons">
-                    <button class="city-card-btn city-card-btn-edit" title="Modifier"><span class="btn-icon">✏️</span> Modifier</button>
-                    <button class="city-card-btn city-card-btn-details" title="Voir détails"><span class="btn-icon">📋</span> Détails</button>
+                    <button class="city-card-btn city-card-btn-edit" title="Modifier">Modifier</button>
+                    <button class="city-card-btn city-card-btn-details" title="Voir d&#233;tails">D&#233;tails</button>
                 </div>
             </div>
             <div class="city-edit-panel" id="cityEditPanel-${cityIndex}" style="display: none;">
@@ -617,8 +617,8 @@ function renderTimeline() {
     initTimelineSortable();
 }
 
-// Colors for route segments
-const segmentColors = ['#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#e91e63', '#1abc9c', '#e67e22', '#34495e'];
+// Colors for route segments — warm, refined palette
+const segmentColors = ['#c8a45c', '#b8936e', '#a8835a', '#c4a46e', '#d4b896', '#a09080', '#c0a870', '#b89070', '#c9a860', '#9e8a6a'];
 
 // Geocode a city name using Nominatim (OpenStreetMap)
 // This will automatically fetch coordinates when a city name is entered
@@ -665,9 +665,11 @@ function geocodeCity(city, inputElement) {
 function initMap() {
     map = L.map('map').setView([48.2082, 16.3738], 6);
 
-    // Add the base map layer
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by Humanitarian OpenStreetMap Team'
+    // Add the base map layer — dark refined CartoDB
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
     }).addTo(map);
 
     // Add legend
